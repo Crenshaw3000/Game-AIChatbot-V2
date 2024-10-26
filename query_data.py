@@ -1,8 +1,7 @@
 import argparse
 from langchain_chroma import Chroma
 from langchain.prompts import ChatPromptTemplate
-from langchain_ollama import OllamaLLM  # new
-
+from langchain_ollama import OllamaLLM
 from get_embedding_function import get_embedding_function
 
 CHROMA_PATH = "chroma"
@@ -24,6 +23,14 @@ Actual Response: {actual_response}
 (Answer with 'true' or 'false') Does the actual response match the expected response? 
 """
 
+# Step 1: Define a dictionary of question-answer pairs.
+expected_responses = {
+    "How much total money does a player start with in classic Monopoly? (Answer with the number only)": "$1500",
+    "How many points win the game in Uno? (Answer with the number only)": "500 points",
+    "How many times can you roll the dice for a turn in Yahtzee? (Answer with the number only)": "3 times",
+    # Add more question-answer pairs as needed
+}
+
 def main():
     # Create CLI.
     parser = argparse.ArgumentParser()
@@ -38,43 +45,54 @@ def main():
     # Call the query_rag function with the provided inputs
     query_rag(query_text, embedding_type)
 
-def query_rag(question: str, embedding_type: str):
+def query_rag(query_text: str, embedding_type: str):
     """Function to query the model and evaluate the response."""
     try:
-        # Assuming get_embedding_function is defined and returns a function to get embeddings
+        # Prepare the embedding function and database.
         embedding_function = get_embedding_function(embedding_type)
+        db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
+
+        # Search the DB.
+        results = db.similarity_search_with_score(query_text, k=5)
+
+        if not results:
+            print("No results found.")
+            return None
+
+        context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
         
-        # Example of querying the model. Modify based on how you interact with your data.
-        # response_text = some_model.query(question, embedding_function)
+        # Prepare the prompt.
+        prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        prompt = prompt_template.format(context=context_text, question=query_text)
+
+        # Invoke the model using the selected embedding type.
+        model = OllamaLLM(model=embedding_type)
+        response_text = model.invoke(prompt)
+
+        # Get expected response based on query.
+        expected_response = expected_responses.get(query_text, "No expected response available.")
         
-        # Here, replace with actual query logic
-        response_text = "Example response based on the question."  # Placeholder response
+        # Evaluate the response.
+        evaluation_prompt = EVAL_PROMPT.format(expected_response=expected_response, actual_response=response_text)
+        evaluation_results_str = model.invoke(evaluation_prompt).strip().lower()
 
-        # For demonstration purposes, we'll define the expected response here.
-        expected_response = "$1500"  # Replace with the actual expected response logic if needed.
-
-        # Proceed with evaluation
-        prompt = EVAL_PROMPT.format(expected_response=expected_response, actual_response=response_text)
-
-        model = OllamaLLM(model="mistral")
-        evaluation_results_str = model.invoke(prompt)
-        
-        evaluation_results_str_cleaned = evaluation_results_str.strip().lower()
-
-        print(prompt)
-
-        if "true" in evaluation_results_str_cleaned:
-            print("\033[92m" + f"Response: {evaluation_results_str_cleaned}" + "\033[0m")
-            return True
-        elif "false" in evaluation_results_str_cleaned:
-            print("\033[91m" + f"Response: {evaluation_results_str_cleaned}" + "\033[0m")
-            return False
+        # Output the evaluation results.
+        if "true" in evaluation_results_str:
+            print("\033[92m" + f"Response: {evaluation_results_str}" + "\033[0m")
+        elif "false" in evaluation_results_str:
+            print("\033[91m" + f"Response: {evaluation_results_str}" + "\033[0m")
         else:
             raise ValueError("Invalid evaluation result. Cannot determine if 'true' or 'false'.")
-    
+
+        # Extract sources from results.
+        sources = [doc.metadata.get("id", "Unknown") for doc, _score in results]
+        formatted_response = f"Response: {response_text}\nSources: {sources}"
+        print(formatted_response)
+        return response_text
+
     except Exception as e:
         print(f"Error querying the model: {e}")
-        return False  # Return False if there is an error
+        return None
 
 if __name__ == "__main__":
     main()
