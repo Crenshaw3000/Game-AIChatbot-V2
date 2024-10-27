@@ -10,6 +10,8 @@ attrs==24.2.0
 backoff==2.2.1
 bcrypt==4.2.0
 blinker==1.8.2
+boto3==1.35.49
+botocore==1.35.49
 build==1.2.2.post1
 cachetools==5.5.0
 certifi==2024.8.30
@@ -43,6 +45,7 @@ importlib_metadata==8.4.0
 importlib_resources==6.4.5
 iniconfig==2.0.0
 Jinja2==3.1.4
+jmespath==1.0.1
 jsonpatch==1.33
 jsonpointer==3.0.0
 jsonschema==4.23.0
@@ -99,6 +102,7 @@ Pygments==2.18.0
 pypdf==5.0.1
 PyPika==0.48.9
 pyproject_hooks==1.2.0
+pysqlite3==0.5.4
 pytest==8.3.3
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
@@ -111,6 +115,7 @@ requests-toolbelt==1.0.0
 rich==13.9.3
 rpds-py==0.20.0
 rsa==4.9
+s3transfer==0.10.3
 shellingham==1.5.4
 six==1.16.0
 smmap==5.0.1
