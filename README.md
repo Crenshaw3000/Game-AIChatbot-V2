@@ -62,8 +62,7 @@ The system consists of five key components:
   expected_responses = {
     "How much total money does a player start with in classic Monopoly? (Answer with the number only)": "$1500",
     "How many points win the game in Uno? (Answer with the number only)": "500 points",
-    "How many times can you roll the dice for a turn in Yahtzee? (Answer with the number only)": "3 times",
-} '''
+    "How many times can you roll the dice for a turn in Yahtzee? (Answer with the number only)": "3 times",} ```
 - **Traceability:** Every answer cites PDF pages and chunk indices for verification.
 
 ## Deployment & Privacy
