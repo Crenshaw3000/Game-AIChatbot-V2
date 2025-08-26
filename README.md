@@ -40,8 +40,30 @@ The system consists of five key components:
 ## Quality Assurance & Validation
 
 - **Prompt Engineering:** Templates constrain the model to use only PDF context.
+  ```python
+  PROMPT_TEMPLATE = """
+  Answer the question based only on the following context:
+  {context}
+  ---
+  Answer the question based on the above context: {question}
+  """
+  ```
 - **Automated Evaluation:** Ground-truth Q&A pairs are used to verify generated answers.
+  ```python
+  EVAL_PROMPT = """
+  Expected Response: {expected_response}
+  Actual Response: {actual_response}
+  ---
+  (Answer with 'true' or 'false') Does the actual response match the expected response? 
+  """
+  ```
 - **Smart Testing:** Includes edge cases such as Monopoly starting money, Uno point totals, and Yahtzee dice rolls.
+  ```python
+  expected_responses = {
+    "How much total money does a player start with in classic Monopoly? (Answer with the number only)": "$1500",
+    "How many points win the game in Uno? (Answer with the number only)": "500 points",
+    "How many times can you roll the dice for a turn in Yahtzee? (Answer with the number only)": "3 times",
+} '''
 - **Traceability:** Every answer cites PDF pages and chunk indices for verification.
 
 ## Deployment & Privacy
